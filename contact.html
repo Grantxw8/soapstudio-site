@@ -40,7 +40,10 @@
           <h2>Questions and feedback</h2>
           <p>Soap Studio is an independent project. If you've found a bug, have a suggestion, or want to share how you're using the app, I'd genuinely love to hear from you.</p>
           <p>You can reach me at:</p>
-          <p class="contact-email"><a href="mailto:hello@soapstudio.app">hello@soapstudio.app</a></p>
+          <p class="contact-email" id="contact-email-line">
+            <!-- address assembled by JS; bots see nothing clickable -->
+            <span id="eml-display" style="font-style:italic; color: var(--violet);">hello&#160;<span style="display:none">REMOVE</span>&#64;&#8203;soapstudio&#46;app</span>
+          </p>
         </div>
 
         <div class="contact-card">
@@ -75,6 +78,27 @@
       <p class="footer-copy">Made with care for the soapmaking community.</p>
     </div>
   </footer>
+
+  <script>
+    // Assemble the mailto link at runtime — bots scraping static HTML never see it
+    (function() {
+      var a = 'hello';
+      var b = 'soapstudio';
+      var c = 'app';
+      var addr = a + '@' + b + '.' + c;
+      var el = document.getElementById('eml-display');
+      if (el) {
+        el.innerHTML = '';
+        var link = document.createElement('a');
+        link.href = 'mailto:' + addr;
+        link.textContent = addr;
+        link.style.color = 'var(--violet)';
+        link.style.borderBottom = '1px solid var(--violet-light)';
+        link.style.fontStyle = 'italic';
+        el.appendChild(link);
+      }
+    })();
+  </script>
 
 </body>
 </html>
