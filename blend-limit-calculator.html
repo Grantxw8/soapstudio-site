@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blend Limit Calculator — Soap Studio</title>
+  <meta name="description" content="Free IFRA Category 9 blend limit calculator for cold-process soapmakers. Enter your fragrance blend components and find the safe maximum usage rate for your soap recipe." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .calc-body { padding: 4rem 2rem 6rem; }
+    .calc-inner { max-width: 720px; margin: 0 auto; }
+
+    .calc-notice {
+      background: var(--plum-pale);
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--violet);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--ink-mid);
+      line-height: 1.65;
+      margin-bottom: 2.5rem;
+    }
+    .calc-notice strong {
+      color: var(--ink);
+      font-weight: 400;
+      font-family: var(--font-display);
+    }
+
+    .calc-section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mauve);
+      margin-bottom: 0.625rem;
+      font-weight: 400;
+    }
+
+    .calc-add-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.75rem;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .calc-add-row select,
+    .calc-add-row input,
+    .calc-custom-row input {
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 300;
+      color: var(--ink);
+      background: var(--warm-white);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 0 0.875rem;
+      height: 40px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .calc-add-row select {
+      flex: 2 1 220px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239b7ab8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.875rem center;
+      padding-right: 2.25rem;
+      cursor: pointer;
+    }
+    .calc-add-row input { flex: 1 1 120px; }
+    .calc-add-row select:focus,
+    .calc-add-row input:focus,
+    .calc-custom-row input:focus { border-color: var(--violet); }
+
+    .calc-custom-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.75rem;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .calc-custom-row .inp-name  { flex: 2 1 180px; }
+    .calc-custom-row .inp-limit { flex: 1 1 130px; }
+    .calc-custom-row .inp-share { flex: 1 1 120px; }
+
+    .btn-calc-add {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--plum);
+      background: var(--plum-pale);
+      border: 1px solid var(--violet-light);
+      border-radius: var(--radius);
+      padding: 0 1.25rem;
+      height: 40px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-calc-add:hover { background: var(--violet-pale); border-color: var(--violet); }
+
+    .calc-divider { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+
+    .calc-blend-list { margin-bottom: 0.5rem; }
+    .calc-empty {
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      font-style: italic;
+      padding: 0.5rem 0 1rem;
+    }
+
+    .calc-ingredient-row {
+      display: grid;
+      grid-template-columns: 1fr auto 110px 32px;
+      gap: 10px;
+      align-items: center;
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .ing-name {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--ink);
+    }
+    .ing-limit-label { font-size: 0.775rem; color: var(--ink-light); margin-top: 2px; }
+    .ing-custom-tag {
+      font-size: 0.7rem;
+      color: var(--ink-light);
+      font-style: italic;
+      font-family: var(--font-body);
+      font-weight: 300;
+    }
+    .ing-share-bar {
+      height: 2px;
+      background: var(--parchment);
+      border-radius: 999px;
+      margin-top: 7px;
+      overflow: hidden;
+    }
+    .ing-share-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--violet-light);
+      transition: width 0.25s ease;
+    }
+    .ing-share-label {
+      font-size: 0.825rem;
+      color: var(--ink-mid);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .ing-share-sub { font-size: 0.7rem; color: var(--ink-light); display: block; }
+    .ing-share-input {
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 300;
+      color: var(--ink);
+      background: var(--warm-white);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 0 0.625rem;
+      height: 34px;
+      width: 100%;
+      outline: none;
+      text-align: right;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .ing-share-input:focus { border-color: var(--violet); }
+
+    .btn-ing-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-light);
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1;
+    }
+    .btn-ing-remove:hover { color: #8a2c20; background: #fdecea; }
+
+    .calc-total-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-bottom: 2rem;
+      min-height: 22px;
+    }
+    .total-val { font-weight: 400; font-family: var(--font-display); font-size: 0.9rem; }
+    .total-ok  { color: #3d6b4f; }
+    .total-bad { color: #8a2c20; }
+
+    .calc-results {
+      background: var(--parchment);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+    }
+    .calc-results .calc-section-label { margin-bottom: 1.25rem; }
+
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .result-box {
+      background: var(--warm-white);
+      border: 1px solid var(--rule);
+      border-top: 3px solid var(--violet-light);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.375rem;
+    }
+    .rb-label { font-size: 0.775rem; color: var(--ink-light); line-height: 1.5; margin-bottom: 0.625rem; }
+    .rb-value {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: var(--rule);
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .rb-value.has-value { color: var(--plum); }
+    .rb-sub { font-size: 0.75rem; color: var(--ink-light); margin-top: 5px; }
+
+    .calc-warning {
+      font-size: 0.825rem;
+      color: #7a4a10;
+      background: #fdf4e3;
+      border: 1px solid #e8d0a0;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-top: 1.25rem;
+      display: none;
+      line-height: 1.55;
+    }
+
+    .calc-footnote {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      line-height: 1.75;
+      border-top: 1px solid var(--rule);
+      padding-top: 1.25rem;
+      font-style: italic;
+    }
+    .calc-footnote a { color: var(--violet); border-bottom: 1px solid var(--violet-light); transition: color 0.2s; }
+    .calc-footnote a:hover { color: var(--plum); }
+
+    @media (max-width: 600px) {
+      .result-grid { grid-template-columns: 1fr; }
+      .calc-ingredient-row { grid-template-columns: 1fr auto 90px 28px; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="nav-logo" href="/">
+        <img class="logo-img" src="/images/logo.png" alt="Soap Studio" />
+        Soap Studio
+      </a>
+      <ul class="nav-links">
+        <li><a href="/features">Features</a></li>
+        <li><a href="/manual">Manual</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <section class="page-hero">
+    <div class="page-hero-inner">
+      <p class="feature-label">Free tool &middot; IFRA Category 9</p>
+      <h1>Fragrance blend <em>limit calculator</em></h1>
+      <p class="page-hero-sub">Enter each component of your fragrance blend and its share of the blend. The calculator works out the safe maximum usage rate for that blend in cold-process bar soap.</p>
+    </div>
+  </section>
+
+  <div class="calc-body">
+    <div class="calc-inner">
+
+      <div class="calc-notice">
+        <strong>Cold-process (rinse-off) soap only.</strong> This calculator applies IFRA Category 9 limits, which cover rinse-off products applied to the whole body &mdash; including cold-process bar soap. It is not suitable for leave-on products, candles, or other applications. Blend shares must total 100%. The oils-weight result uses a conversion factor of 0.88, typical for a standard CP recipe after lye solution and cure-weight loss.
+      </div>
+
+      <p class="calc-section-label">Add from library</p>
+      <div class="calc-add-row">
+        <select id="eo-select" aria-label="Choose essential oil or fragrance">
+          <option value="">&#8212; choose an essential oil or fragrance &#8212;</option>
+        </select>
+        <input type="number" id="eo-share" placeholder="% of blend" min="0.01" max="100" step="0.1" aria-label="Percentage of blend" />
+        <button class="btn-calc-add" onclick="addFromLibrary()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add
+        </button>
+      </div>
+
+      <p class="calc-section-label">Add custom ingredient &mdash; enter your own IFRA Category 9 limit</p>
+      <div class="calc-custom-row">
+        <input class="inp-name"  type="text"   id="custom-name"  placeholder="Ingredient name"      aria-label="Ingredient name" />
+        <input class="inp-limit" type="number" id="custom-limit" placeholder="IFRA Cat. 9 limit %"  min="0.01" max="100" step="0.01" aria-label="IFRA Category 9 limit" />
+        <input class="inp-share" type="number" id="custom-share" placeholder="% of blend"           min="0.01" max="100" step="0.1"  aria-label="Percentage of blend" />
+        <button class="btn-calc-add" onclick="addCustom()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add
+        </button>
+      </div>
+
+      <hr class="calc-divider" />
+
+      <p class="calc-section-label">Blend components</p>
+      <div class="calc-blend-list" id="blend-list">
+        <p class="calc-empty">No components added yet &mdash; use the fields above to build your blend.</p>
+      </div>
+      <div class="calc-total-row" id="total-row"></div>
+
+      <div class="calc-results">
+        <p class="calc-section-label">Safe maximum usage rate for this blend</p>
+        <div class="result-grid">
+          <div class="result-box">
+            <div class="rb-label">Finished soap weight basis<br>(IFRA published basis)</div>
+            <div class="rb-value" id="res-finished">&#8212;</div>
+            <div class="rb-sub">% of finished bar weight</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">Oils weight basis<br>(recipe bench figure)</div>
+            <div class="rb-value" id="res-oils">&#8212;</div>
+            <div class="rb-sub">% of total oils in recipe</div>
+          </div>
+        </div>
+        <div class="calc-warning" id="calc-warning">
+          Blend components do not total 100% &mdash; adjust the shares above before relying on this result.
+        </div>
+      </div>
+
+      <p class="calc-footnote">
+        IFRA limits sourced from IFRA Amendment 50 (2023). The library covers 37 commonly used cosmetic-grade essential oils. Custom entries must be verified by the user at <a href="https://ifrafragrance.org/safe-use/library" target="_blank" rel="noopener">ifrafragrance.org</a>. This tool is provided for guidance only &mdash; always verify critical safety decisions against primary IFRA sources. Soap Studio accepts no liability for formulation decisions made using this calculator.
+      </p>
+
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-name">Soap Studio</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/features">Features</a>
+        <a href="/manual">Manual</a>
+        <a href="/contact">Contact</a>
+      </nav>
+      <span class="footer-copy">Made with care for the soapmaking community</span>
+    </div>
+  </footer>
+
+  <script>
+    var EO_LIBRARY = [
+      { name: "Bergamot (bergapten-free)", limit: 11.9 },
+      { name: "Cedarwood (Atlas)",          limit: 8.0  },
+      { name: "Chamomile (Roman)",           limit: 8.0  },
+      { name: "Cinnamon bark",               limit: 0.05 },
+      { name: "Cinnamon leaf",               limit: 0.6  },
+      { name: "Citronella",                  limit: 2.6  },
+      { name: "Clary sage",                  limit: 8.0  },
+      { name: "Clove bud",                   limit: 0.5  },
+      { name: "Clove leaf",                  limit: 0.5  },
+      { name: "Eucalyptus (globulus)",        limit: 2.1  },
+      { name: "Frankincense (B. carterii)",  limit: 8.0  },
+      { name: "Geranium (Bourbon)",           limit: 8.0  },
+      { name: "Grapefruit (cold-pressed)",   limit: 8.0  },
+      { name: "Jasmine absolute",            limit: 3.5  },
+      { name: "Lavender 40/42",              limit: 17.0 },
+      { name: "Lavender (L. angustifolia)",  limit: 17.0 },
+      { name: "Lemon (cold-pressed)",        limit: 2.0  },
+      { name: "Lemongrass",                  limit: 0.7  },
+      { name: "Lime (cold-pressed)",         limit: 0.7  },
+      { name: "Lime (distilled)",            limit: 8.0  },
+      { name: "Mandarin (cold-pressed)",     limit: 8.0  },
+      { name: "Myrrh",                       limit: 8.0  },
+      { name: "Neroli",                      limit: 8.0  },
+      { name: "Orange sweet (cold-pressed)", limit: 8.0  },
+      { name: "Oregano",                     limit: 0.1  },
+      { name: "Patchouli",                   limit: 8.0  },
+      { name: "Peppermint",                  limit: 2.4  },
+      { name: "Rose absolute",               limit: 8.0  },
+      { name: "Rose otto (Bulgarian)",       limit: 8.0  },
+      { name: "Rosemary (camphor CT)",       limit: 2.5  },
+      { name: "Sandalwood (Australian)",     limit: 8.0  },
+      { name: "Spearmint",                   limit: 1.2  },
+      { name: "Tea tree (M. alternifolia)",  limit: 1.4  },
+      { name: "Thyme (thymol CT)",           limit: 0.1  },
+      { name: "Vetiver",                     limit: 8.0  },
+      { name: "Ylang ylang",                 limit: 1.2  }
+    ].sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+    var OILS_TO_SOAP = 0.88;
+    var blend  = [];
+    var nextId = 1;
+
+    var sel = document.getElementById('eo-select');
+    EO_LIBRARY.forEach(function(eo) {
+      var opt = document.createElement('option');
+      opt.value = eo.name;
+      opt.dataset.limit = eo.limit;
+      opt.textContent = eo.name + ' \u2014 IFRA max ' + eo.limit + '%';
+      sel.appendChild(opt);
+    });
+
+    function addFromLibrary() {
+      var s   = document.getElementById('eo-select');
+      var inp = document.getElementById('eo-share');
+      var opt = s.options[s.selectedIndex];
+      if (!opt || !opt.dataset.limit) { alert('Please choose an ingredient from the list.'); return; }
+      var share = parseFloat(inp.value);
+      if (isNaN(share) || share <= 0) { alert('Enter the percentage this ingredient makes up of the blend.'); return; }
+      blend.push({ id: nextId++, name: opt.value, ifraLimit: parseFloat(opt.dataset.limit), share: share, custom: false });
+      inp.value = ''; s.selectedIndex = 0;
+      render();
+    }
+
+    function addCustom() {
+      var name  = document.getElementById('custom-name').value.trim();
+      var limit = parseFloat(document.getElementById('custom-limit').value);
+      var share = parseFloat(document.getElementById('custom-share').value);
+      if (!name)                      { alert('Enter a name for this ingredient.'); return; }
+      if (isNaN(limit) || limit <= 0) { alert('Enter the IFRA Category 9 limit.\nLook it up at ifrafragrance.org/safe-use/library'); return; }
+      if (isNaN(share) || share <= 0) { alert('Enter the percentage this ingredient makes up of the blend.'); return; }
+      blend.push({ id: nextId++, name: name, ifraLimit: limit, share: share, custom: true });
+      document.getElementById('custom-name').value  = '';
+      document.getElementById('custom-limit').value = '';
+      document.getElementById('custom-share').value = '';
+      render();
+    }
+
+    function removeItem(id) {
+      blend = blend.filter(function(i) { return i.id !== id; });
+      render();
+    }
+
+    function updateShare(id, val) {
+      var item = blend.find(function(i) { return i.id === id; });
+      if (item) item.share = parseFloat(val) || 0;
+      render();
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function render() {
+      var list     = document.getElementById('blend-list');
+      var totalRow = document.getElementById('total-row');
+
+      if (blend.length === 0) {
+        list.innerHTML = '<p class="calc-empty">No components added yet \u2014 use the fields above to build your blend.</p>';
+        totalRow.innerHTML = '';
+        setResults(null, null);
+        document.getElementById('calc-warning').style.display = 'none';
+        return;
+      }
+
+      var total = blend.reduce(function(s, i) { return s + i.share; }, 0);
+      var ok    = Math.abs(total - 100) < 0.5;
+
+      totalRow.innerHTML =
+        'Blend total: <span class="total-val ' + (ok ? 'total-ok' : 'total-bad') + '">' +
+        total.toFixed(1) + '%</span>' +
+        '<span style="font-size:0.75rem;color:var(--ink-light);">\u00a0(must equal 100%)</span>';
+
+      list.innerHTML = blend.map(function(i) {
+        var barW = Math.min(i.share, 100).toFixed(1);
+        return '<div class="calc-ingredient-row">' +
+          '<div>' +
+            '<div class="ing-name">' + esc(i.name) +
+              (i.custom ? ' <span class="ing-custom-tag">custom</span>' : '') +
+            '</div>' +
+            '<div class="ing-limit-label">IFRA Cat.&thinsp;9 limit: ' + i.ifraLimit + '%</div>' +
+            '<div class="ing-share-bar"><div class="ing-share-fill" style="width:' + barW + '%"></div></div>' +
+          '</div>' +
+          '<div class="ing-share-label">' + i.share.toFixed(1) + '%' +
+            '<span class="ing-share-sub">of blend</span>' +
+          '</div>' +
+          '<input class="ing-share-input" type="number" value="' + i.share + '"' +
+            ' min="0.01" max="100" step="0.1"' +
+            ' onchange="updateShare(' + i.id + ', this.value)"' +
+            ' aria-label="Share of blend for ' + esc(i.name) + '" />' +
+          '<button class="btn-ing-remove" onclick="removeItem(' + i.id + ')"' +
+            ' aria-label="Remove ' + esc(i.name) + '">' +
+            '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
+              '<path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+            '</svg>' +
+          '</button>' +
+        '</div>';
+      }).join('');
+
+      var sumFrac  = blend.reduce(function(s, i) { return s + ((i.share / 100) / i.ifraLimit); }, 0);
+      var limFin   = sumFrac > 0 ? 1 / sumFrac : null;
+      var limOils  = limFin !== null ? limFin / OILS_TO_SOAP : null;
+      setResults(limFin, limOils);
+      document.getElementById('calc-warning').style.display = ok ? 'none' : 'block';
+    }
+
+    function setResults(finished, oils) {
+      var rF = document.getElementById('res-finished');
+      var rO = document.getElementById('res-oils');
+      if (finished !== null) {
+        rF.textContent = finished.toFixed(2) + '%'; rF.className = 'rb-value has-value';
+        rO.textContent = oils.toFixed(2) + '%';     rO.className = 'rb-value has-value';
+      } else {
+        rF.textContent = '\u2014'; rF.className = 'rb-value';
+        rO.textContent = '\u2014'; rO.className = 'rb-value';
+      }
+    }
+  </script>
+
+</body>
+</html>
